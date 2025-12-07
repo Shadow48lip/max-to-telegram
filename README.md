@@ -1,2 +1,2 @@
-# max-to-telegram-
+# max-to-telegram
 Пересылка сообщений из Max школьной группы в Telegram-bot, который оповестит всех в группе.
