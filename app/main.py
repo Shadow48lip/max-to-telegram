@@ -33,14 +33,14 @@ async def main():
                     await asyncio.sleep(1)
                     continue
 
-                if msg.typeMessage == "textMessage":
+                if msg.typeMessage == "imageMessage":
+                    logging.info("Пересылаем картинку")
+                    logging.info(msg)
+                else:
                     logging.info("Пересылаем текстовое сообщение")
                     formatted_msg = f"👀<b>{msg.senderName}</b> [{msg.chatName}]:\n\n{msg.message}"
                     await send_tg_text_message(formatted_msg)
                 
-                if msg.typeMessage == "imageMessage":
-                    logging.info("Пересылаем картинку")
-                    logging.info(msg)
 
                 
                 # TODO техническая пауза. Убрать потом!

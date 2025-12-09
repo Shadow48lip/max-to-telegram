@@ -71,13 +71,18 @@ async def get_max_messages(client: httpx.AsyncClient) -> dict | None:
     #         }
     #     }
     # }
-
-    {'receiptId': 2, 
-        'body': {'typeWebhook': 'incomingMessageReceived', 
-                 'instanceData': {'idInstance': 3100400119, 'wid': '79103547767@c.us', 'typeInstance': 'v3'}, 
-                 'timestamp': 1765285703, 'idMessage': '115689763837649904', 
-                'senderData': {'chatId': '-69308615655644', 'chatName': '6В ИНФОРМАЦИЯ', 'sender': '63270108', 'senderName': 'Анастасия', 'senderContactName': '', 'senderPhoneNumber': 0}, 
-                'messageData': {'typeMessage': 'textMessage', 'textMessageData': {'textMessage': 'Олимпиада от учителя русского языка.', 'forwardingScore': 0, 'isForwarded': False}}}}
+    # {'receiptId': 1, 
+    #  'body': {'typeWebhook': 'incomingMessageReceived', 
+    #           'instanceData': {'idInstance': 3100400119, 'wid': '79103547767@c.us', 'typeInstance': 'v3'}, 
+    #           'timestamp': 1765285691, 'idMessage': '115689763107266127', 
+    #           'senderData': {'chatId': '-69308615655644', 'chatName': '6В ИНФОРМАЦИЯ', 'sender': '63270108', 'senderName': 'Анастасия', 'senderContactName': '', 'senderPhoneNumber': 0}, 
+    #           'messageData': {'typeMessage': 'extendedTextMessage', 'extendedTextMessageData': {'text': 'В период с 1 октября до 14 декабря 2025 олимпиады для школьников 1-11 классов.  Зарегистрироваться на Олимпиаду 25.foxford.ru\nпроходит по следующим предметам: русский язык, математика.\n  Бесплатно.\n Олимпиада входит в Перечень олимпиад.\nОлимпиада разработана в соответствии с задачами национального проекта «Молодёжь и и направлена на обеспечение развития и успеха каждого ребенка, раскрытие талантов обучающихся.\nЗадания Олимпиады направлены на развитие функциональной грамотности. Участие в Олимпиаде дает\nвозможность попасть в государственный информационный ресурс о детях, проявивших выдающиеся\nспособности. Все участники также получают возможность участвовать в розыгрыше ценных призов от\n«Фоксфорда» и партнеров олимпиады.\nОлимпиада проводится в 2 тура:\n1. Отборочный этап проходит онлайн с 1 октября до 14 декабря 2025 год на платформе\n«Фоксфорда» для учеников 1–11 классов, он включает в себя нестандартные задачи в\nолимпиадном формате.', 'description': 'Участвуй в бесплатной Олимпиаде и выигрывай призы.', 'title': 'Узнай, на что ты способен!', 'previewType': 'None', 'jpegThumbnail': '', 'forwardingScore': 1, 'isForwarded': True}}}}
+    # {'receiptId': 2, 
+    #     'body': {'typeWebhook': 'incomingMessageReceived', 
+    #              'instanceData': {'idInstance': 3100400119, 'wid': '79103547767@c.us', 'typeInstance': 'v3'}, 
+    #              'timestamp': 1765285703, 'idMessage': '115689763837649904', 
+    #             'senderData': {'chatId': '-69308615655644', 'chatName': '6В ИНФОРМАЦИЯ', 'sender': '63270108', 'senderName': 'Анастасия', 'senderContactName': '', 'senderPhoneNumber': 0}, 
+    #             'messageData': {'typeMessage': 'textMessage', 'textMessageData': {'textMessage': 'Олимпиада от учителя русского языка.', 'forwardingScore': 0, 'isForwarded': False}}}}
 
     url = url_builder("receiveNotification")
 
@@ -91,8 +96,8 @@ async def get_max_messages(client: httpx.AsyncClient) -> dict | None:
             
             logging.info(f"Успех: {data}")
             # Удаляем полученное уведомление
-            if await delete_max_message(client, int(data.get("receiptId"))):
-                logging.info("Сообщение удалено из очереди")
+            # if await delete_max_message(client, int(data.get("receiptId"))):
+            #     logging.info("Сообщение удалено из очереди")
             return data
         else:
             logging.warning(f"HTTP {response.status_code}: {response.text}")
@@ -154,7 +159,11 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage:
         logging.info("Пропускаем сообщение, оно не наше.")
         return None
     
-    message = max_message.messageData.textMessageData.get("textMessage")
+    if max_message.messageData.typeMessage == "textMessage":
+        message = max_message.messageData.textMessageData.get("textMessage")
+    if max_message.messageData.typeMessage == "extendedTextMessage":
+        message = max_message.messageData.extendedTextMessageData.get("text")
+
     if not message:
         message = "..."
 

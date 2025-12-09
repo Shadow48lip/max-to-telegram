@@ -11,7 +11,7 @@ class MaxSender(BaseModel):
 
 class MaxMessageData(BaseModel):
     # typeMessage: Literal['textMessage', 'extendedTextMessage', "imageMessage"]
-    typeMessage: Literal["textMessage", "imageMessage"]
+    typeMessage: Literal["textMessage", "extendedTextMessage", "imageMessage"]
     textMessageData: dict = None
         # "textMessage": "Я использую GREEN-API для отправки этого сообщения!"
     extendedTextMessageData: dict = None
