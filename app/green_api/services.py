@@ -1,7 +1,9 @@
 import httpx
 import logging
+from pydantic import ValidationError
 
 from env_settings import GREEN_API_URL, GREEN_API_TOKEN, GREEN_API_INSTANCE_ID
+from green_api.schemas import MaxMessage, NewMessage
 
 async def check_max_instance(client: httpx.AsyncClient) -> bool:
     """Проверяет активен ли иснтанс. Если нет, то нет смысла дальше обращаться."""
@@ -24,7 +26,58 @@ async def check_max_instance(client: httpx.AsyncClient) -> bool:
         logging.error(f"Неожиданная ошибка: {e}")
     return False
 
-async def get_max_messages(client: httpx.AsyncClient, chat_id: str = None):
+async def get_max_messages(client: httpx.AsyncClient) -> dict | None:
+    # 	{
+	# 	"type": "incoming",
+	# 	"idMessage": "115687812637677830",
+	# 	"timestamp": 1765255930,
+	# 	"typeMessage": "textMessage",
+	# 	"chatId": "-69308615655644",
+	# 	"textMessage": "Доброе утро!\nРастёт количество заболевших в школе, пишите пожалуйста сразу, если ребёнок болеет",
+	# 	"senderId": "63270108",
+	# 	"senderName": "Анастасия",
+	# 	"senderContactName": "",
+	# 	"deletedMessageId": "",
+	# 	"editedMessageId": "",
+	# 	"isEdited": false,
+	# 	"isDeleted": false
+	#   }
+
+    # Testing
+    # return {
+    #     "receiptId": 1234567,
+    #     "body": {
+    #         "typeWebhook": "incomingMessageReceived",
+    #         "instanceData": {
+    #             "idInstance": 310000001,
+    #             "wid": "79991234567@c.us",
+    #             "typeInstance": "v3"
+    #         },
+    #         "timestamp": 1588091580,
+    #         "idMessage": "126543123451133331119",
+    #         "senderData": {
+    #             "chatId": "-69308615655644",
+    #             "chatName": "Ходабрыш",
+    #             "sender": "10000000",
+    #             "senderName": "Ходабрыш Пробешёлов",
+    #             "senderContactName": "Ходабрыш Пробешёлов",
+    #             "senderPhoneNumber": 79876543210
+    #         },
+    #         "messageData": {
+    #             "typeMessage": "textMessage",
+    #             "textMessageData": {
+    #                 "textMessage": "Привет от Green-API!"
+    #             }
+    #         }
+    #     }
+    # }
+
+    {'receiptId': 2, 
+        'body': {'typeWebhook': 'incomingMessageReceived', 
+                 'instanceData': {'idInstance': 3100400119, 'wid': '79103547767@c.us', 'typeInstance': 'v3'}, 
+                 'timestamp': 1765285703, 'idMessage': '115689763837649904', 
+                'senderData': {'chatId': '-69308615655644', 'chatName': '6В ИНФОРМАЦИЯ', 'sender': '63270108', 'senderName': 'Анастасия', 'senderContactName': '', 'senderPhoneNumber': 0}, 
+                'messageData': {'typeMessage': 'textMessage', 'textMessageData': {'textMessage': 'Олимпиада от учителя русского языка.', 'forwardingScore': 0, 'isForwarded': False}}}}
 
     url = url_builder("receiveNotification")
 
@@ -34,10 +87,37 @@ async def get_max_messages(client: httpx.AsyncClient, chat_id: str = None):
             data = response.json()
             if not data:
                 logging.info("Нет сообщений. Ждем дальше...")
-                return False
+                return None
             
             logging.info(f"Успех: {data}")
-            return True
+            # Удаляем полученное уведомление
+            if await delete_max_message(client, int(data.get("receiptId"))):
+                logging.info("Сообщение удалено из очереди")
+            return data
+        else:
+            logging.warning(f"HTTP {response.status_code}: {response.text}")
+    except httpx.RequestError as e:
+        logging.error(f"Ошибка сети: {e}")
+    except httpx.HTTPStatusError as e:
+        logging.error(f"HTTP-ошибка: {e}")
+    except Exception as e:
+        logging.error(f"Неожиданная ошибка: {e}")
+    return None
+
+async def delete_max_message(client: httpx.AsyncClient, message_id: int) -> bool:
+    """Удаляет из очереди сообщение"""
+    
+    url = f"{url_builder("deleteNotification")}/{message_id}"
+
+    try:
+        response = await client.delete(url)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("result") and data["result"] is True:
+                return True
+            
+            logging.error(f"Не удалось удалить: {data}")
+            return False
         else:
             logging.warning(f"HTTP {response.status_code}: {response.text}")
     except httpx.RequestError as e:
@@ -50,7 +130,41 @@ async def get_max_messages(client: httpx.AsyncClient, chat_id: str = None):
 
 def url_builder(method: str):
     """ Строит url для запроса """
-    # TODO подставить из переменных окружения
     url = f"{GREEN_API_URL}/v3/waInstance{GREEN_API_INSTANCE_ID}/{method}/{GREEN_API_TOKEN}"
     return url
 
+
+def process_max_message(data: dict, chat_ids: list) -> NewMessage:
+    """Разбирает сообщение, удаляет из очереди, если все ОК"""
+    if "body" not in data:
+        logging.error("Сообщение не соедржит тела Body")
+        return None
+
+    body = data.get("body")
+    try:
+        max_message = MaxMessage(**body)
+        logging.info("Валидация модели прошла успешно")
+    except ValidationError as e:
+        logging.error("❌ Ошибки валидации:")
+        for err in e.errors():
+            print(f"  {err['loc']}: {err['msg']} ({err['type']})")
+        return None
+    
+    if max_message.senderData.chatId not in chat_ids:
+        logging.info("Пропускаем сообщение, оно не наше.")
+        return None
+    
+    message = max_message.messageData.textMessageData.get("textMessage")
+    if not message:
+        message = "..."
+
+
+    new_message = NewMessage(
+        typeMessage = max_message.messageData.typeMessage,
+        senderName = max_message.senderData.senderName,
+        chatName = max_message.senderData.chatName,
+        file = max_message.messageData.fileMessageData,
+        message = message
+    )
+
+    return new_message

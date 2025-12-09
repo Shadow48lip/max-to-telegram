@@ -5,6 +5,8 @@ description = "Проверяет сообщения в MAX и пересыла�
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "aiogram>=3.23.0",
     "environs>=14.5.0",
     "httpx>=0.28.1",
+    "pydantic>=2.12.5",
 ]
