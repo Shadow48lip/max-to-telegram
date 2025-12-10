@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    # ports:
+    #   - "8000:8000"  # если нужно пробросить порты
+    command: uv run main.py

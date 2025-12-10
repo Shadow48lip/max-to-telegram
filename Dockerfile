@@ -17,6 +17,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-COPY . .
+# COPY . .
 RUN uv --version
 CMD ["uv", "run", "main.py"]
