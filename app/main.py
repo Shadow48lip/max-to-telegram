@@ -16,7 +16,7 @@ async def main():
             logger.warning("Проверка инстанса при старте прошла успешно!")
             while True:
                 logger.info("Отправляю запрос...")
-                result = await get_max_messages(client, after_delete=False)
+                result = await get_max_messages(client, after_delete=True)
                 if not result:
                     await asyncio.sleep(pause_time)
                     continue
