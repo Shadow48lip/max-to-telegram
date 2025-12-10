@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   app:
+    container_name: max-tg-bridge
     build: .
     volumes:
       - .:/app
@@ -9,4 +10,4 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     # ports:
     #   - "8000:8000"  # если нужно пробросить порты
-    command: uv run main.py
+    command: uv run app/main.py

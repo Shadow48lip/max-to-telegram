@@ -19,4 +19,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # COPY . .
 RUN uv --version
-CMD ["uv", "run", "main.py"]
+CMD ["uv", "run", "app/main.py"]
