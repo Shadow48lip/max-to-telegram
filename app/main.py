@@ -2,7 +2,7 @@ import asyncio
 import httpx
 
 from green_api.services import check_max_instance, get_max_messages, process_max_message
-from telegram.services import send_tg_text_message
+from telegram.services import send_tg_photo, send_tg_text_message
 from env_settings import MAX_CHAT_IDS
 from logging_conf import logger
 
@@ -29,14 +29,17 @@ async def main():
                     await asyncio.sleep(1)
                     continue
 
-                if msg.typeMessage == "imageMessage":
-                    logger.warning("Пересылаем картинку")
-                    logger.info(msg)
-                else:
+                if msg.typeMessage == "textMessage" or msg.typeMessage == "extendedTextMessage":
                     logger.warning("Пересылаем текстовое сообщение")
                     formatted_msg = f"👀<b>{msg.senderName}</b> [{msg.chatName}]:\n\n{msg.message}"
                     await send_tg_text_message(formatted_msg)
-                
+                elif msg.typeMessage == "imageMessage":
+                    logger.warning("Пересылаем картинку.")
+                    formatted_msg = f"👀<b>{msg.senderName}</b> [{msg.chatName}]:\n\n{msg.message}"
+                    await send_tg_photo(msg.file, formatted_msg)
+                else:
+                    logger.warning("Неизвестный тип сообщения!")
+                    logger.warning(msg.raw_data)
                 
                 # TODO техническая пауза. Убрать потом!
                 await asyncio.sleep(1)

@@ -46,3 +46,4 @@ class NewMessage(BaseModel):
     chatName: str
     file: dict | None = None
     message: str = None
+    raw_data: dict

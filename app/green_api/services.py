@@ -121,21 +121,20 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
         logger.warning("Пропускаем сообщение, оно не наше.")
         return None
     
+    message = ""
     if max_msg.messageData.typeMessage == "textMessage":
         message = max_msg.messageData.textMessageData.get("textMessage")
     if max_msg.messageData.typeMessage == "extendedTextMessage":
         message = max_msg.messageData.extendedTextMessageData.get("text")
-
-    if not message:
-        message = "..."
 
 
     new_message = NewMessage(
         typeMessage = max_msg.messageData.typeMessage,
         senderName = max_msg.senderData.senderName,
         chatName = max_msg.senderData.chatName,
-        file = max_msg.messageData.fileMessageData,
-        message = message
+        file = max_msg.messageData.fileMessageData.get("downloadUrl"),
+        message = message,
+        raw_data = max_msg,
     )
 
     return new_message
