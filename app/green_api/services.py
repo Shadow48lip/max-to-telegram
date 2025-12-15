@@ -126,13 +126,16 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
         message = max_msg.messageData.textMessageData.get("textMessage")
     if max_msg.messageData.typeMessage == "extendedTextMessage":
         message = max_msg.messageData.extendedTextMessageData.get("text")
-
+    
+    file = None
+    if max_msg.messageData.typeMessage == "imageMessage":
+        file = max_msg.messageData.fileMessageData.get("downloadUrl")
 
     new_message = NewMessage(
         typeMessage = max_msg.messageData.typeMessage,
         senderName = max_msg.senderData.senderName,
         chatName = max_msg.senderData.chatName,
-        file = max_msg.messageData.fileMessageData.get("downloadUrl"),
+        file = file,
         message = message,
         raw_data = max_msg,
     )
