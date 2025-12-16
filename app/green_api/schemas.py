@@ -11,7 +11,7 @@ class MaxSender(BaseModel):
 
 class MaxMessageData(BaseModel):
     # typeMessage: Literal['textMessage', 'extendedTextMessage', "imageMessage"]
-    typeMessage: Literal["textMessage", "extendedTextMessage", "imageMessage"]
+    typeMessage: Literal["textMessage", "extendedTextMessage", "imageMessage", "reactionMessage"]
     textMessageData: dict = None
         # "textMessage": "Я использую GREEN-API для отправки этого сообщения!"
     extendedTextMessageData: dict = None
@@ -29,7 +29,6 @@ class MaxMessageData(BaseModel):
         # "mimeType": "image/webp",
         # "forwardingScore": 0,
         # "isForwarded": false
-
 
 class MaxMessage(BaseModel):
     typeWebhook: str

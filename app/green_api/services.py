@@ -122,6 +122,10 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
         logger.warning("Пропускаем сообщение, оно не наше.")
         return None
     
+    if max_msg.messageData.typeMessage == "reactionMessage":
+        logger.warning(f"Пропускаем реакцию на сообщение {max_msg.messageData.extendedTextMessageData.get('text')}")
+        return None
+
     message = ""
     if max_msg.messageData.typeMessage == "textMessage":
         message = max_msg.messageData.textMessageData.get("textMessage")
