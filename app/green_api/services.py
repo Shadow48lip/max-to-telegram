@@ -114,7 +114,8 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
     except ValidationError as e:
         logger.error("❌ Ошибки валидации:")
         for err in e.errors():
-            print(f"  {err['loc']}: {err['msg']} ({err['type']})")
+            logger.error(f"  {err['loc']}: {err['msg']} ({err['type']})")
+            logger.error(body)
         return None
     
     if max_msg.senderData.chatId not in chat_ids:
