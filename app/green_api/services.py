@@ -137,7 +137,7 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
         chatName = max_msg.senderData.chatName,
         file = file,
         message = message,
-        raw_data = max_msg,
+        raw_data = body,
     )
 
     return new_message
