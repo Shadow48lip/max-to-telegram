@@ -1,6 +1,7 @@
 services:
   app:
     container_name: max-tg-bridge
+    restart: unless-stopped:3
     build: .
     volumes:
       - .:/app
