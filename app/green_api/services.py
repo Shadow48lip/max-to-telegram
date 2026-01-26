@@ -119,7 +119,7 @@ def process_max_message(data: dict, chat_ids: list) -> NewMessage | None:
         return None
     
     if max_msg.senderData.chatId not in chat_ids:
-        logger.warning("Пропускаем сообщение, оно не наше.")
+        logger.warning(f"Пропускаем сообщение из чата [{max_msg.senderData.chatId}]: {max_msg.senderData.chatName}, оно не наше.")
         return None
     
     if max_msg.messageData.typeMessage == "reactionMessage":
